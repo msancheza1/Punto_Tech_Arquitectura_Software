@@ -1,25 +1,40 @@
 """
-URL configuration for proyecto project.
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/6.0/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
+urls.py
+-------
+Configuración de rutas de la API REST de Punto Tech.
 """
-
-from django.contrib import admin
 from django.urls import path
-
+from sistema.presentation.views import (
+    RegistrarUsuarioView,
+    ActualizarPerfilView,
+    ListarProductosCategoriaView,
+    DetalleProductoView,
+    AgregarProductoCarritoView,
+    VerCarritoView,
+    EliminarProductoCarritoView,
+    CrearPedidoView,
+    ListarPedidosView,
+    RecomendacionesView,
+)
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    
+    # Usuarios
+    path("api/usuarios/registrar/", RegistrarUsuarioView.as_view(), name="registrar-usuario"),
+    path("api/usuarios/<str:usuario_id>/perfil/", ActualizarPerfilView.as_view(), name="actualizar-perfil"),
+
+    # Productos
+    path("api/categorias/<str:categoria_id>/productos/", ListarProductosCategoriaView.as_view(), name="listar-productos"),
+    path("api/productos/<str:producto_id>/", DetalleProductoView.as_view(), name="detalle-producto"),
+
+    # Carrito
+    path("api/usuarios/<str:usuario_id>/carrito/", VerCarritoView.as_view(), name="ver-carrito"),
+    path("api/usuarios/<str:usuario_id>/carrito/agregar/", AgregarProductoCarritoView.as_view(), name="agregar-carrito"),
+    path("api/usuarios/<str:usuario_id>/carrito/<str:producto_id>/", EliminarProductoCarritoView.as_view(), name="eliminar-carrito"),
+
+    # Pedidos
+    path("api/pedidos/crear/", CrearPedidoView.as_view(), name="crear-pedido"),
+    path("api/usuarios/<str:usuario_id>/pedidos/", ListarPedidosView.as_view(), name="listar-pedidos"),
+
+    # Recomendaciones
+    path("api/usuarios/<str:usuario_id>/recomendaciones/", RecomendacionesView.as_view(), name="recomendaciones"),
 ]
