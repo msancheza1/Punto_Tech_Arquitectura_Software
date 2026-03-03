@@ -3,7 +3,7 @@
 import { use } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import {
   ArrowLeft,
   Star,
@@ -25,23 +25,63 @@ import { CartProvider, useCart } from "@/lib/cart-context"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { ProductCard } from "@/components/product-card"
-import { featuredProducts, formatPrice, getStockStatus } from "@/lib/data"
+import { type Product, featuredProducts, formatPrice, getStockStatus } from "@/lib/data"
+import { api } from "@/lib/api"
 
 function ProductDetailContent({ id }: { id: string }) {
-  const product = featuredProducts.find((p) => p.id === id) || featuredProducts[0]
-  const relatedProducts = featuredProducts
-    .filter((p) => p.category === product.category && p.id !== product.id)
-    .slice(0, 3)
-  const otherProducts = featuredProducts.filter((p) => p.id !== product.id).slice(0, 3)
-  const recommendations = relatedProducts.length > 0 ? relatedProducts : otherProducts
+  const [product, setProduct] = useState<Product | null>(null)
+  const [recommendations, setRecommendations] = useState<Product[]>([])
+
+  useEffect(() => {
+    let mounted = true
+
+    async function load() {
+      const fallbackBase = featuredProducts.find((p) => p.id === id) || featuredProducts[0]
+
+      let baseProduct = fallbackBase
+      try {
+        baseProduct = await api.getProductById(id)
+      } catch {
+        baseProduct = fallbackBase
+      }
+
+      if (!mounted) return
+      setProduct(baseProduct)
+
+      try {
+        const items = await api.getAllProducts()
+        if (!mounted) return
+        const related = items
+          .filter((p) => p.category === baseProduct.category && p.id !== baseProduct.id)
+          .slice(0, 3)
+        const other = items.filter((p) => p.id !== baseProduct.id).slice(0, 3)
+        setRecommendations(related.length > 0 ? related : other)
+      } catch {
+        if (!mounted) return
+        const related = featuredProducts
+          .filter((p) => p.category === baseProduct.category && p.id !== baseProduct.id)
+          .slice(0, 3)
+        const other = featuredProducts.filter((p) => p.id !== baseProduct.id).slice(0, 3)
+        setRecommendations(related.length > 0 ? related : other)
+      }
+    }
+
+    load()
+
+    return () => {
+      mounted = false
+    }
+  }, [id])
+
+  const resolvedProduct = product || featuredProducts.find((p) => p.id === id) || featuredProducts[0]
 
   const { addItem } = useCart()
   const [quantity, setQuantity] = useState(1)
   const [withWarranty, setWithWarranty] = useState(false)
-  const stockStatus = getStockStatus(product.stock)
+  const stockStatus = getStockStatus(resolvedProduct.stock)
 
-  const warrantyPrice = product.price * 0.1
-  const totalPrice = (product.price + (withWarranty ? warrantyPrice : 0)) * quantity
+  const warrantyPrice = resolvedProduct.price * 0.1
+  const totalPrice = (resolvedProduct.price + (withWarranty ? warrantyPrice : 0)) * quantity
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-8 lg:px-8">
@@ -61,15 +101,15 @@ function ProductDetailContent({ id }: { id: string }) {
         {/* Image */}
         <div className="relative aspect-square overflow-hidden rounded-2xl border border-border bg-card">
           <Image
-            src={product.image}
-            alt={product.name}
+            src={resolvedProduct.image}
+            alt={resolvedProduct.name}
             fill
             className="object-cover"
             priority
           />
-          {product.badge && (
+          {resolvedProduct.badge && (
             <Badge className="absolute left-4 top-4 bg-primary text-primary-foreground">
-              {product.badge}
+              {resolvedProduct.badge}
             </Badge>
           )}
         </div>
@@ -78,18 +118,18 @@ function ProductDetailContent({ id }: { id: string }) {
         <div className="flex flex-col gap-6">
           <div>
             <p className="text-sm font-medium uppercase tracking-wider text-primary">
-              {product.category === "phones"
+              {resolvedProduct.category === "phones"
                 ? "Celulares"
-                : product.category === "laptops"
+                : resolvedProduct.category === "laptops"
                   ? "Computadores"
-                  : product.category === "headphones"
+                  : resolvedProduct.category === "headphones"
                     ? "Audifonos"
-                    : product.category === "speakers"
+                    : resolvedProduct.category === "speakers"
                       ? "Bafles"
                       : "Accesorios"}
             </p>
             <h1 className="mt-2 text-3xl font-bold tracking-tight text-foreground">
-              {product.name}
+              {resolvedProduct.name}
             </h1>
 
             {/* Rating */}
@@ -99,7 +139,7 @@ function ProductDetailContent({ id }: { id: string }) {
                   <Star
                     key={i}
                     className={`h-4 w-4 ${
-                      i < Math.floor(product.rating)
+                      i < Math.floor(resolvedProduct.rating)
                         ? "fill-yellow-400 text-yellow-400"
                         : "text-muted-foreground"
                     }`}
@@ -107,34 +147,34 @@ function ProductDetailContent({ id }: { id: string }) {
                 ))}
               </div>
               <span className="text-sm font-medium text-foreground">
-                {product.rating}
+                {resolvedProduct.rating}
               </span>
               <span className="text-sm text-muted-foreground">
-                ({product.reviews} resenas)
+                ({resolvedProduct.reviews} resenas)
               </span>
             </div>
           </div>
 
           {/* Price */}
           <div>
-            {product.originalPrice && (
+            {resolvedProduct.originalPrice && (
               <p className="text-sm text-muted-foreground line-through">
-                {formatPrice(product.originalPrice)}
+                {formatPrice(resolvedProduct.originalPrice)}
               </p>
             )}
             <p className="text-3xl font-bold text-foreground">
-              {formatPrice(product.price)}
+              {formatPrice(resolvedProduct.price)}
             </p>
           </div>
 
           <p className="text-base leading-relaxed text-muted-foreground">
-            {product.description}
+            {resolvedProduct.description}
           </p>
 
           {/* Specs */}
-          {product.specs && (
+          {resolvedProduct.specs && (
             <div className="flex flex-wrap gap-2">
-              {product.specs.map((spec) => (
+              {resolvedProduct.specs.map((spec) => (
                 <span
                   key={spec}
                   className="rounded-lg border border-border bg-secondary px-3 py-1.5 text-sm text-foreground"
@@ -149,15 +189,15 @@ function ProductDetailContent({ id }: { id: string }) {
           <div className="flex items-center gap-2">
             <div
               className={`h-2.5 w-2.5 rounded-full ${
-                product.stock > 0 ? "bg-emerald-400" : "bg-destructive"
+                resolvedProduct.stock > 0 ? "bg-emerald-400" : "bg-destructive"
               }`}
             />
             <span className={`text-sm font-medium ${stockStatus.color}`}>
               {stockStatus.label}
             </span>
-            {product.stock > 0 && product.stock <= 15 && (
+            {resolvedProduct.stock > 0 && resolvedProduct.stock <= 15 && (
               <span className="text-xs text-muted-foreground">
-                - Solo {product.stock} unidades
+                - Solo {resolvedProduct.stock} unidades
               </span>
             )}
           </div>
@@ -165,7 +205,7 @@ function ProductDetailContent({ id }: { id: string }) {
           <Separator className="bg-border" />
 
           {/* Warranty Option */}
-          {product.warrantyAvailable && (
+          {resolvedProduct.warrantyAvailable && (
             <div className="rounded-xl border border-border bg-secondary p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -213,7 +253,7 @@ function ProductDetailContent({ id }: { id: string }) {
                 size="icon"
                 className="h-10 w-10"
                 onClick={() =>
-                  setQuantity(Math.min(product.stock, quantity + 1))
+                  setQuantity(Math.min(resolvedProduct.stock, quantity + 1))
                 }
                 aria-label="Increase quantity"
               >
@@ -225,10 +265,10 @@ function ProductDetailContent({ id }: { id: string }) {
               className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
               onClick={() => {
                 for (let i = 0; i < quantity; i++) {
-                  addItem(product, withWarranty)
+                  addItem(resolvedProduct, withWarranty)
                 }
               }}
-              disabled={product.stock === 0}
+              disabled={resolvedProduct.stock === 0}
             >
               <ShoppingCart className="mr-2 h-5 w-5" />
               Agregar al carrito - {formatPrice(totalPrice)}
@@ -265,7 +305,7 @@ function ProductDetailContent({ id }: { id: string }) {
           <TabsContent value="description" className="mt-6">
             <div className="rounded-2xl border border-border bg-card p-6">
               <p className="leading-relaxed text-muted-foreground">
-                {product.description} Este producto ha sido seleccionado por nuestros
+                {resolvedProduct.description} Este producto ha sido seleccionado por nuestros
                 expertos por su excelente relacion calidad-precio y las mejores
                 valoraciones de nuestros clientes. Incluye todos los accesorios
                 originales del fabricante y una guia de inicio rapido.
@@ -275,7 +315,7 @@ function ProductDetailContent({ id }: { id: string }) {
           <TabsContent value="specs" className="mt-6">
             <div className="rounded-2xl border border-border bg-card p-6">
               <div className="space-y-3">
-                {product.specs?.map((spec, i) => (
+                {resolvedProduct.specs?.map((spec, i) => (
                   <div
                     key={spec}
                     className="flex items-center justify-between border-b border-border py-2 last:border-0"

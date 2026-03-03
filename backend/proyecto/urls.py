@@ -8,6 +8,7 @@ from sistema.presentation.views import (
     RegistrarUsuarioView,
     ActualizarPerfilView,
     ListarProductosCategoriaView,
+    ListarProductosView,
     DetalleProductoView,
     AgregarProductoCarritoView,
     VerCarritoView,
@@ -23,6 +24,7 @@ urlpatterns = [
     path("api/usuarios/<str:usuario_id>/perfil/", ActualizarPerfilView.as_view(), name="actualizar-perfil"),
 
     # Productos
+    path("api/productos/", ListarProductosView.as_view(), name="listar-productos-todos"),
     path("api/categorias/<str:categoria_id>/productos/", ListarProductosCategoriaView.as_view(), name="listar-productos"),
     path("api/productos/<str:producto_id>/", DetalleProductoView.as_view(), name="detalle-producto"),
 

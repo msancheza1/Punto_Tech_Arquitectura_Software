@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useEffect, useState, useMemo } from "react"
 import { Grid3X3, List, Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -17,17 +17,34 @@ import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { ProductCard } from "@/components/product-card"
 import { ProductFilters } from "@/components/product-filters"
-import { featuredProducts } from "@/lib/data"
+import { type Product } from "@/lib/data"
+import { api } from "@/lib/api"
 import { SlidersHorizontal } from "lucide-react"
 
 export default function ProductsPage() {
+  const [products, setProducts] = useState<Product[]>([])
   const [search, setSearch] = useState("")
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 15000000])
   const [sortBy, setSortBy] = useState("featured")
 
+  useEffect(() => {
+    let mounted = true
+    api
+      .getAllProducts()
+      .then((data) => {
+        if (mounted) setProducts(data)
+      })
+      .catch(() => {
+        if (mounted) setProducts([])
+      })
+    return () => {
+      mounted = false
+    }
+  }, [])
+
   const filteredProducts = useMemo(() => {
-    let result = [...featuredProducts]
+    let result = [...products]
 
     // Search
     if (search) {
@@ -65,7 +82,7 @@ export default function ProductsPage() {
     }
 
     return result
-  }, [search, selectedCategories, priceRange, sortBy])
+  }, [products, search, selectedCategories, priceRange, sortBy])
 
   function resetFilters() {
     setSearch("")

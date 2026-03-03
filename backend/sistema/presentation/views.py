@@ -54,6 +54,13 @@ class ListarProductosCategoriaView(APIView):
         return Response(data, status=status.HTTP_200_OK)
 
 
+class ListarProductosView(APIView):
+    def get(self, request):
+        productos = ProductoService().listar_todos()
+        data = ProductoSerializer(productos, many=True).data
+        return Response(data, status=status.HTTP_200_OK)
+
+
 class DetalleProductoView(APIView):
     def get(self, request, producto_id):
         try:

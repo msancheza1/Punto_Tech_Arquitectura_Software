@@ -52,6 +52,9 @@ class UsuarioService:
 # ─────────────────────────────────────────────
 class ProductoService:
 
+    def listar_todos(self) -> list:
+        return list(Producto.objects.all().select_related("stock", "categoria"))
+
     def listar_por_categoria(self, categoria_id: str) -> list:
         return list(Producto.objects.filter(categoria_id=categoria_id).select_related("stock"))
 
