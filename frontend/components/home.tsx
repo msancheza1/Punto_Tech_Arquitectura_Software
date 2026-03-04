@@ -23,7 +23,7 @@ const features = [
   },
 ]
 
-export function HeroSection() {
+export function Home() {
   return (
     <section className="relative overflow-hidden">
       <div className="relative min-h-[560px] lg:min-h-[660px]">
@@ -37,7 +37,7 @@ export function HeroSection() {
             priority
           />
           <div className="absolute inset-0 bg-background/80" />
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary/8 via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right, var(--tw-gradient-stops))] from-primary/8 via-transparent to-transparent" />
         </div>
 
         {/* Content */}

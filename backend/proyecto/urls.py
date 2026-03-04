@@ -3,6 +3,7 @@ urls.py
 -------
 Configuración de rutas de la API REST de Punto Tech.
 """
+from django.http import JsonResponse
 from django.urls import path
 from sistema.presentation.views import (
     RegistrarUsuarioView,
@@ -18,7 +19,12 @@ from sistema.presentation.views import (
     RecomendacionesView,
 )
 
+def api_root(request):
+    return JsonResponse({"status": "Punto Tech API corriendo ✅"})
+
 urlpatterns = [
+    path("", api_root),  # ✅ Ruta raíz — responde en http://127.0.0.1:8000/
+
     # Usuarios
     path("api/usuarios/registrar/", RegistrarUsuarioView.as_view(), name="registrar-usuario"),
     path("api/usuarios/<str:usuario_id>/perfil/", ActualizarPerfilView.as_view(), name="actualizar-perfil"),
