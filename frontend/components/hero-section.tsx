@@ -30,7 +30,7 @@ export function HeroSection() {
         {/* Background Image */}
         <div className="absolute inset-0">
           <Image
-            src="/images/hero-tech.jpg"
+            src="/images/fondoHome.jpg"
             alt="Technology workspace with premium devices"
             fill
             className="object-cover"

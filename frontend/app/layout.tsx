@@ -1,10 +1,6 @@
 import type { Metadata, Viewport } from 'next'
-import { Inter, Space_Grotesk } from 'next/font/google'
-import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
 
-const _inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
-const _spaceGrotesk = Space_Grotesk({ subsets: ["latin"], variable: "--font-space-grotesk" });
 
 export const viewport: Viewport = {
   themeColor: '#0d1117',
@@ -25,7 +21,6 @@ export default function RootLayout({
     <html lang="es">
       <body className="font-sans antialiased">
         {children}
-        <Analytics />
       </body>
     </html>
   )
